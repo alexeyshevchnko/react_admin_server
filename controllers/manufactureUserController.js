@@ -3,8 +3,6 @@ import { ManufactureUser } from '../models/index.js';
 export default { 
     async getAll(req, res) {
   try {
-    console.log('Raw query:', req.query);
-
     const { filter, range, sort } = req.query;
     let parsedFilter = {};
 
@@ -49,8 +47,6 @@ export default {
       query.exec(),
       ManufactureUser.countDocuments(parsedFilter),
     ]);
-
-    console.log(`Found ${items.length} items out of ${total}`);
 
     res.set({
       'Content-Range': `manufacture_user 0-${items.length - 1}/${total}`,

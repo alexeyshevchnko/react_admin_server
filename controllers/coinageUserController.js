@@ -6,7 +6,9 @@ export default {
       const { userId } = req.params;
       const coinage = await CoinageUser.findOne({ user_id: userId });
 
-      if (!coinage) return res.status(404).json({ error: 'CoinageUser not found' });
+      if (!coinage) {
+        return res.json({ data: [], total: 0 });
+      }
 
       const processCycle = (coinage.process_cicle || []).map((item, index) => ({
         index,

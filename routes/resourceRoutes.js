@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import { createStandardController } from '../controllers/baseController.js';
 import {
-  Withdraw, Transaction, ManufactureUser, UserDwarfs,
-  Tool, Trolley, Deposit, Stock, Mail, Offer, Dwarf
+  Withdraw, ManufactureUser, UserDwarfs,
+  Tool, Trolley, Deposit, Stock, Mail, Offer, Dwarf,
+  UserStock
 } from '../models/index.js';
 
 const router = Router();
 
 const resources = [
-  { route: 'withdraws', model: Withdraw },
-  { route: 'transactions', model: Transaction },
+  { route: 'withdraws', model: Withdraw }, 
   { route: 'manufacture_user', model: ManufactureUser },
   { route: 'user_dwarves', model: UserDwarfs },
   { route: 'tools', model: Tool },
@@ -18,11 +18,12 @@ const resources = [
   { route: 'stocks', model: Stock },
   { route: 'mails', model: Mail },
   { route: 'offers', model: Offer },
-  { route: 'dwarves', model: Dwarf }
+  { route: 'dwarves', model: Dwarf },
+  { route: 'user_stocks', model: UserStock, populate: ['stock_id'] }  
 ];
 
-resources.forEach(({ route, model }) => {
-  const controller = createStandardController(model, route);
+resources.forEach(({ route, model, populate }) => {
+  const controller = createStandardController(model, route, { populate });
   router.get(`/${route}`, controller.list);
   router.get(`/${route}/:id`, controller.getOne);
   router.post(`/${route}`, controller.create);
