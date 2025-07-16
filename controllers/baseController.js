@@ -1,11 +1,11 @@
-import { 
-  parseQueryParams, 
-  applyStandardFilters 
+import {
+  parseQueryParams,
+  applyStandardFilters,
 } from '../utils/filterHelpers.js';
 import { formatResponse } from '../utils/responseHelpers.js';
 
 export const createStandardController = (model, resourceName, options = {}) => {
-  const { populate = [] } = options;
+  const { populate = [], useAggregate = false, aggregatePipeline = [] } = options;
 
   const applyPopulate = (query) => {
     populate.forEach((field) => {
@@ -21,18 +21,56 @@ export const createStandardController = (model, resourceName, options = {}) => {
         const [start, end] = range;
         const [sortField, sortOrder] = sort;
         const parsedFilter = applyStandardFilters(filter);
+        const limit = end - start + 1;
 
-        let query = model.find(parsedFilter)
-          .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
-          .skip(start)
-          .limit(end - start + 1);
+        let items, total;
 
-        query = applyPopulate(query);
+        if (useAggregate) {
+          // Собираем агрегированный pipeline
+          const pipeline = [
+            ...(aggregatePipeline.length > 0 ? aggregatePipeline : []),
+            { $match: parsedFilter },
+            ...(populate.length > 0
+              ? populate.map((p) => ({
+                  $lookup: {
+                    from: p.from,
+                    localField: p.localField,
+                    foreignField: p.foreignField,
+                    as: p.as || p.localField,
+                  },
+                }))
+              : []),
+            { $sort: { [sortField]: sortOrder === 'ASC' ? 1 : -1 } },
+            { $skip: start },
+            { $limit: limit },
+          ];
 
-        const [items, total] = await Promise.all([
-          query.exec(),
-          model.countDocuments(parsedFilter)
-        ]);
+          const countPipeline = [
+            ...(aggregatePipeline.length > 0 ? aggregatePipeline : []),
+            { $match: parsedFilter },
+            { $count: 'total' },
+          ];
+
+          const [result, countResult] = await Promise.all([
+            model.aggregate(pipeline),
+            model.aggregate(countPipeline),
+          ]);
+
+          items = result;
+          total = countResult.length > 0 ? countResult[0].total : 0;
+        } else {
+          let query = model.find(parsedFilter)
+            .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+            .skip(start)
+            .limit(limit);
+
+          query = applyPopulate(query);
+
+          [items, total] = await Promise.all([
+            query.exec(),
+            model.countDocuments(parsedFilter),
+          ]);
+        }
 
         const { data, headers } = formatResponse(items, total, range, resourceName);
         res.set(headers).json(data);
@@ -56,7 +94,10 @@ export const createStandardController = (model, resourceName, options = {}) => {
 
     async create(req, res) {
       try {
-        const item = new model({ ...req.body, created_at: Math.floor(Date.now() / 1000) });
+        const item = new model({
+          ...req.body,
+          created_at: Math.floor(Date.now() / 1000),
+        });
         await item.save();
         res.status(201).json({ id: item._id.toString(), ...item.toObject() });
       } catch (error) {
@@ -86,6 +127,6 @@ export const createStandardController = (model, resourceName, options = {}) => {
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
-    }
+    },
   };
 };

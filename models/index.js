@@ -9,6 +9,7 @@ import { Trolley } from './Trolley.js';
 import { Deposit } from './Deposit.js';
 import { Stock } from './Stock.js';
 import { UserStock } from './UserStock.js';
+import { UserStockMarketOffer } from './UserStockMarketOffer.js';
 import { Mail } from './Mail.js';
 import { Offer } from './Offer.js';
 import { Dwarf } from './Dwarf.js';
@@ -29,5 +30,6 @@ export {
     Mail,
     Offer,
     Dwarf,
-    UserStock
+    UserStock,
+    UserStockMarketOffer
 };
