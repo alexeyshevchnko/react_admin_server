@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { createStandardController } from '../controllers/baseController.js';
 import {
   Withdraw, ManufactureUser, UserDwarfs,
-  Tool, Trolley, Deposit, Stock, Mail, Offer, Dwarf,
+  Trolley, Deposit, Stock, Mail, Offer, Dwarf,
   UserStock
 } from '../models/index.js';
 
@@ -12,7 +12,6 @@ const resources = [
   { route: 'withdraws', model: Withdraw }, 
   { route: 'manufacture_user', model: ManufactureUser },
   { route: 'user_dwarves', model: UserDwarfs },
-  { route: 'tools', model: Tool },
   { route: 'trolleys', model: Trolley },
   { route: 'deposits', model: Deposit },
   { route: 'stocks', model: Stock },

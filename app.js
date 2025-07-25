@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { connectDB } from './config/database.js';
+import { connectDB, analyticsConnection } from './config/database.js';
 import mainRouter from './routes/index.js';
 
 const app = express();
@@ -10,11 +10,19 @@ app.use(cors({
 }));
 app.use(express.json());
 
-connectDB();
+// Ждём подключения БД перед запуском сервера
+const startServer = async () => {
+  await connectDB();
 
-app.use('/api', mainRouter);
+  // После подключения аналитики сохраняем объект db в app
+  app.set('analyticsDB', analyticsConnection.db);
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${PORT}`);
-});
+  app.use('/api', mainRouter);
+
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`✅ Server is running on http://localhost:${PORT}`);
+  });
+};
+
+startServer();

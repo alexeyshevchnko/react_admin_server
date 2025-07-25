@@ -78,5 +78,19 @@ export default {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
+  },
+  async getOneByID(req, res) {
+    try { 
+      const user = await User.findOne({ ID: req.params.id });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      res.json({
+        id: user._id,
+        ...user.toObject(),
+        purchasesCount: user.PURCHASES?.length || 0
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
 };
+

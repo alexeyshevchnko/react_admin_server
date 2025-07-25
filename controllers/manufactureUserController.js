@@ -9,24 +9,18 @@ export default {
     if (filter) {
       try {
         parsedFilter = JSON.parse(filter);
-        console.log('Parsed filter:', parsedFilter);
       } catch (e) {
         console.error('Error parsing filter:', e);
         return res.status(400).json({ error: 'Invalid filter format' });
       }
-    }
-
-    console.log('Final filter used for DB query:', parsedFilter);
-
+    } 
     let query = ManufactureUser.find(parsedFilter);
-    console.log('Initial query created:', query.getQuery());
+    
 
     if (range) {
       try {
         const [start, end] = JSON.parse(range);
-        console.log('Range parsed:', start, end);
         query = query.skip(start).limit(end - start + 1);
-        console.log('Query after applying range:', query.getOptions());
       } catch (e) {
         console.error('Error parsing range:', e);
       }
@@ -35,9 +29,7 @@ export default {
     if (sort) {
       try {
         const [field, order] = JSON.parse(sort);
-        console.log('Sort parsed:', field, order);
         query = query.sort({ [field]: order === 'ASC' ? 1 : -1 });
-        console.log('Query after applying sort:', query.getOptions());
       } catch (e) {
         console.error('Error parsing sort:', e);
       }
